@@ -5,7 +5,8 @@ import {
   insertBusinessAnalyzerSchema, 
   insertContentItemSchema, 
   insertVoiceProfileSchema, 
-  insertImageAssetSchema 
+  insertImageAssetSchema,
+  insertDealSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -170,6 +171,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ error: null });
     } catch (error) {
       res.status(400).json({ error: error.message });
+    }
+  });
+
+  // Deal Routes
+  app.get("/api/deals", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const deals = await storage.getDeals(userId);
+      res.json({ data: deals, error: null });
+    } catch (error) {
+      res.status(500).json({ data: null, error: error.message });
+    }
+  });
+
+  app.get("/api/deals/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deal = await storage.getDeal(id);
+      res.json({ data: deal, error: null });
+    } catch (error) {
+      res.status(500).json({ data: null, error: error.message });
+    }
+  });
+
+  app.post("/api/deals", async (req, res) => {
+    try {
+      const validatedData = insertDealSchema.parse(req.body);
+      const deal = await storage.createDeal(validatedData);
+      res.json({ data: deal, error: null });
+    } catch (error) {
+      res.status(400).json({ data: null, error: error.message });
+    }
+  });
+
+  app.patch("/api/deals/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deal = await storage.updateDeal(id, req.body);
+      res.json({ data: deal, error: null });
+    } catch (error) {
+      res.status(400).json({ data: null, error: error.message });
+    }
+  });
+
+  app.delete("/api/deals/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteDeal(id);
+      res.json({ error: null });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/deals/stage/:stage", async (req, res) => {
+    try {
+      const { stage } = req.params;
+      const userId = req.query.userId as string;
+      const deals = await storage.getDealsByStage(userId, stage);
+      res.json({ data: deals, error: null });
+    } catch (error) {
+      res.status(500).json({ data: null, error: error.message });
     }
   });
 

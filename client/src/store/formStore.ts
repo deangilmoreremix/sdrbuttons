@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '../services/supabaseClient';
+import * as apiService from '../services/apiService';
 
 export type FormField = {
   id: string;

@@ -122,6 +122,40 @@ export const deleteImageAsset = async (id: string) => {
   });
 };
 
+// Deal functions
+export const fetchDeals = async (userId?: string) => {
+  const endpoint = userId ? `/deals?userId=${userId}` : '/deals';
+  return await apiRequest(endpoint);
+};
+
+export const fetchDeal = async (id: string) => {
+  return await apiRequest(`/deals/${id}`);
+};
+
+export const createDeal = async (dealData: any) => {
+  return await apiRequest('/deals', {
+    method: 'POST',
+    body: JSON.stringify(dealData),
+  });
+};
+
+export const updateDeal = async (id: string, dealData: any) => {
+  return await apiRequest(`/deals/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(dealData),
+  });
+};
+
+export const deleteDeal = async (id: string) => {
+  return await apiRequest(`/deals/${id}`, {
+    method: 'DELETE',
+  });
+};
+
+export const fetchDealsByStage = async (userId: string, stage: string) => {
+  return await apiRequest(`/deals/stage/${stage}?userId=${userId}`);
+};
+
 // Edge Function replacement - AI services
 export const callAIService = async (functionName: string, payload: any) => {
   return await apiRequest(`/ai/${functionName}`, {

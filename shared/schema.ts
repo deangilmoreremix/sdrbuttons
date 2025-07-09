@@ -50,6 +50,22 @@ export const imageAssets = pgTable("image_assets", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const deals = pgTable("deals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull(),
+  title: text("title").notNull(),
+  company: text("company"),
+  contact: text("contact"),
+  value: integer("value").default(0),
+  stage: text("stage").default("qualification"),
+  probability: integer("probability").default(0),
+  daysInStage: integer("days_in_stage").default(0),
+  priority: text("priority").default("medium"),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -78,6 +94,12 @@ export const insertImageAssetSchema = createInsertSchema(imageAssets).omit({
   createdAt: true,
 });
 
+export const insertDealSchema = createInsertSchema(deals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type BusinessAnalyzer = typeof businessAnalyzer.$inferSelect;
@@ -88,3 +110,5 @@ export type VoiceProfile = typeof voiceProfiles.$inferSelect;
 export type InsertVoiceProfile = z.infer<typeof insertVoiceProfileSchema>;
 export type ImageAsset = typeof imageAssets.$inferSelect;
 export type InsertImageAsset = z.infer<typeof insertImageAssetSchema>;
+export type Deal = typeof deals.$inferSelect;
+export type InsertDeal = z.infer<typeof insertDealSchema>;

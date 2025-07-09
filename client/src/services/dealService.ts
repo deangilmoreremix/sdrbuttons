@@ -1,16 +1,10 @@
-import { supabase } from './supabaseClient';
+import * as apiService from './apiService';
 import { Deal } from '../types';
 
 // Fetch all deals for the current user
 const fetchDeals = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-      
-    return { data, error };
+    return await apiService.fetchDeals(userId);
   } catch (error) {
     console.error("Error fetching deals:", error);
     return { data: null, error };
@@ -20,14 +14,7 @@ const fetchDeals = async (userId: string) => {
 // Fetch deals by stage
 const fetchDealsByStage = async (userId: string, stage: string) => {
   try {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('stage', stage)
-      .order('created_at', { ascending: false });
-      
-    return { data, error };
+    return await apiService.fetchDealsByStage(userId, stage);
   } catch (error) {
     console.error("Error fetching deals by stage:", error);
     return { data: null, error };
@@ -37,12 +24,7 @@ const fetchDealsByStage = async (userId: string, stage: string) => {
 // Create a new deal
 const createDeal = async (dealData: Partial<Deal>, userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('deals')
-      .insert([{ ...dealData, user_id: userId }])
-      .select();
-      
-    return { data, error };
+    return await apiService.createDeal({ ...dealData, user_id: userId });
   } catch (error) {
     console.error("Error creating deal:", error);
     return { data: null, error };
@@ -58,13 +40,7 @@ const updateDeal = async (id: string, dealData: Partial<Deal>) => {
       updated_at: new Date().toISOString()
     };
     
-    const { data, error } = await supabase
-      .from('deals')
-      .update(updatedDealData)
-      .eq('id', id)
-      .select();
-      
-    return { data, error };
+    return await apiService.updateDeal(id, updatedDealData);
   } catch (error) {
     console.error("Error updating deal:", error);
     return { data: null, error };
@@ -74,12 +50,8 @@ const updateDeal = async (id: string, dealData: Partial<Deal>) => {
 // Delete a deal
 const deleteDeal = async (id: string) => {
   try {
-    const { error } = await supabase
-      .from('deals')
-      .delete()
-      .eq('id', id);
-      
-    return { error };
+    await apiService.deleteDeal(id);
+    return { error: null };
   } catch (error) {
     console.error("Error deleting deal:", error);
     return { error };
@@ -90,13 +62,7 @@ const deleteDeal = async (id: string) => {
 const updateDealStage = async (id: string, newStage: string, oldStage: string) => {
   try {
     // Get current deal data to calculate days in stage
-    const { data: currentDealData, error: fetchError } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('id', id)
-      .single();
-      
-    if (fetchError) throw fetchError;
+    const currentDealData = await apiService.getDeal(id);
     
     // Reset days in stage when stage changes
     const daysInStage = newStage !== oldStage ? 0 : (currentDealData?.days_in_stage || 0);
@@ -125,18 +91,12 @@ const updateDealStage = async (id: string, newStage: string, oldStage: string) =
         break;
     }
     
-    const { data, error } = await supabase
-      .from('deals')
-      .update({ 
-        stage: newStage, 
-        probability,
-        days_in_stage: daysInStage,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select();
-      
-    return { data, error };
+    return await apiService.updateDeal(id, { 
+      stage: newStage, 
+      probability,
+      days_in_stage: daysInStage,
+      updated_at: new Date().toISOString()
+    });
   } catch (error) {
     console.error("Error updating deal stage:", error);
     return { data: null, error };
@@ -146,12 +106,9 @@ const updateDealStage = async (id: string, newStage: string, oldStage: string) =
 // Get deal statistics
 const getDealStats = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('user_id', userId);
-      
-    if (error) throw error;
+    const { data } = await apiService.fetchDeals(userId);
+    
+    if (!data) return { error: 'No data found' };
     
     // Calculate statistics
     const totalDeals = data.length;
@@ -187,15 +144,17 @@ const getDealStats = async (userId: string) => {
 // Fetch deals that need attention
 const getHighPriorityDeals = async (userId: string) => {
   try {
-    const { data, error } = await supabase
-      .from('deals')
-      .select('*')
-      .eq('user_id', userId)
-      .in('stage', ['qualification', 'proposal', 'negotiation'])
-      .order('updated_at', { ascending: true })
-      .limit(5);
+    const { data } = await apiService.fetchDeals(userId);
+    
+    if (!data) return { data: null, error: 'No data found' };
+    
+    // Filter and sort high priority deals
+    const highPriorityDeals = data
+      .filter(deal => ['qualification', 'proposal', 'negotiation'].includes(deal.stage))
+      .sort((a, b) => new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime())
+      .slice(0, 5);
       
-    return { data, error };
+    return { data: highPriorityDeals, error: null };
   } catch (error) {
     console.error("Error fetching high priority deals:", error);
     return { data: null, error };

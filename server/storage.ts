@@ -1,5 +1,6 @@
 import { 
   users, 
+  deals,
   type User, 
   type InsertUser, 
   type BusinessAnalyzer, 
@@ -9,7 +10,9 @@ import {
   type VoiceProfile, 
   type InsertVoiceProfile, 
   type ImageAsset, 
-  type InsertImageAsset 
+  type InsertImageAsset,
+  type Deal,
+  type InsertDeal
 } from "@shared/schema";
 
 // modify the interface with any CRUD methods
@@ -43,6 +46,14 @@ export interface IStorage {
   createImageAsset(asset: InsertImageAsset): Promise<ImageAsset>;
   updateImageAsset(id: string, asset: Partial<InsertImageAsset>): Promise<ImageAsset>;
   deleteImageAsset(id: string): Promise<void>;
+  
+  // Deals
+  getDeals(userId?: string): Promise<Deal[]>;
+  getDeal(id: string): Promise<Deal | undefined>;
+  createDeal(deal: InsertDeal): Promise<Deal>;
+  updateDeal(id: string, deal: Partial<InsertDeal>): Promise<Deal>;
+  deleteDeal(id: string): Promise<void>;
+  getDealsByStage(userId: string, stage: string): Promise<Deal[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -51,6 +62,7 @@ export class MemStorage implements IStorage {
   private contentItems: Map<string, ContentItem>;
   private voiceProfiles: Map<string, VoiceProfile>;
   private imageAssets: Map<string, ImageAsset>;
+  private deals: Map<string, Deal>;
   currentId: number;
 
   constructor() {
@@ -59,6 +71,7 @@ export class MemStorage implements IStorage {
     this.contentItems = new Map();
     this.voiceProfiles = new Map();
     this.imageAssets = new Map();
+    this.deals = new Map();
     this.currentId = 1;
   }
 
@@ -212,11 +225,59 @@ export class MemStorage implements IStorage {
   async deleteImageAsset(id: string): Promise<void> {
     this.imageAssets.delete(id);
   }
+
+  // Deal Methods
+  async getDeals(userId?: string): Promise<Deal[]> {
+    const deals = Array.from(this.deals.values());
+    return userId ? deals.filter(d => d.userId === userId) : deals;
+  }
+
+  async getDeal(id: string): Promise<Deal | undefined> {
+    return this.deals.get(id);
+  }
+
+  async createDeal(deal: InsertDeal): Promise<Deal> {
+    const id = crypto.randomUUID();
+    const newDeal: Deal = {
+      ...deal,
+      id,
+      value: deal.value || 0,
+      stage: deal.stage || 'qualification',
+      probability: deal.probability || 0,
+      daysInStage: deal.daysInStage || 0,
+      priority: deal.priority || 'medium',
+      company: deal.company || null,
+      contact: deal.contact || null,
+      dueDate: deal.dueDate || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.deals.set(id, newDeal);
+    return newDeal;
+  }
+
+  async updateDeal(id: string, deal: Partial<InsertDeal>): Promise<Deal> {
+    const existing = this.deals.get(id);
+    if (!existing) throw new Error('Deal not found');
+    
+    const updated = { ...existing, ...deal, updatedAt: new Date() };
+    this.deals.set(id, updated);
+    return updated;
+  }
+
+  async deleteDeal(id: string): Promise<void> {
+    this.deals.delete(id);
+  }
+
+  async getDealsByStage(userId: string, stage: string): Promise<Deal[]> {
+    const deals = Array.from(this.deals.values());
+    return deals.filter(d => d.userId === userId && d.stage === stage);
+  }
 }
 
 // Database Storage Implementation
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { 
   businessAnalyzer, 
   contentItems, 
@@ -342,6 +403,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteImageAsset(id: string): Promise<void> {
     await db.delete(imageAssets).where(eq(imageAssets.id, id));
+  }
+
+  // Deal Methods
+  async getDeals(userId?: string): Promise<Deal[]> {
+    if (userId) {
+      return await db.select().from(deals).where(eq(deals.userId, userId));
+    }
+    return await db.select().from(deals);
+  }
+
+  async getDeal(id: string): Promise<Deal | undefined> {
+    const result = await db.select().from(deals).where(eq(deals.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createDeal(deal: InsertDeal): Promise<Deal> {
+    const result = await db.insert(deals).values(deal).returning();
+    return result[0];
+  }
+
+  async updateDeal(id: string, deal: Partial<InsertDeal>): Promise<Deal> {
+    const result = await db.update(deals)
+      .set({ ...deal, updatedAt: new Date() })
+      .where(eq(deals.id, id))
+      .returning();
+    if (result.length === 0) throw new Error('Deal not found');
+    return result[0];
+  }
+
+  async deleteDeal(id: string): Promise<void> {
+    await db.delete(deals).where(eq(deals.id, id));
+  }
+
+  async getDealsByStage(userId: string, stage: string): Promise<Deal[]> {
+    return await db.select().from(deals)
+      .where(and(eq(deals.userId, userId), eq(deals.stage, stage)));
   }
 }
 
