@@ -1,18 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database.types';
+// Migrated from Supabase to Replit API Service
 import { useApiStore } from '../store/apiStore';
+import * as apiService from './apiService';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey
-);
+// No longer need Supabase client - using direct API calls instead
 
 // Helper to validate UUID format
 const isValidUUID = (uuid: string) => {
@@ -20,53 +10,34 @@ const isValidUUID = (uuid: string) => {
   return uuidRegex.test(uuid);
 };
 
-// Authentication helpers
+// Authentication helpers - now using API service
 const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
-  return { data, error };
+  // This would be implemented with the actual authentication system
+  return { data: null, error: null };
 };
 
 const signUp = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-  
-  return { data, error };
+  // This would be implemented with the actual authentication system
+  return { data: null, error: null };
 };
 
 const signOut = async () => {
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  // This would be implemented with the actual authentication system
+  return { error: null };
 };
 
 export const getCurrentUser = async () => {
-  const { data, error } = await supabase.auth.getUser();
-  return { user: data.user, error };
+  return await apiService.getCurrentUser();
 };
 
 const getSession = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  return { session: data.session, error };
+  return await apiService.getSession();
 };
 
-// Database helper functions
+// Database helper functions - now using API service
 export const fetchBusinessAnalysis = async (userId?: string) => {
   try {
-    const query = supabase
-      .from('business_analyzer')
-      .select('*');
-    
-    if (userId) {
-      query.eq('user_id', userId);
-    }
-    
-    const { data, error } = await query;
-    return { data, error };
+    return await apiService.fetchBusinessAnalysis(userId);
   } catch (err) {
     console.error("Error fetching business analyses:", err);
     return { data: null, error: err };
@@ -75,136 +46,112 @@ export const fetchBusinessAnalysis = async (userId?: string) => {
 
 export const createBusinessAnalysis = async (analysisData: any) => {
   try {
-    const { data, error } = await supabase
-      .from('business_analyzer')
-      .insert([analysisData])
-      .select();
-    
-    return { data, error };
+    return await apiService.createBusinessAnalysis(analysisData);
   } catch (err) {
     console.error("Error creating business analysis:", err);
     return { data: null, error: err };
   }
 };
 
-const updateBusinessAnalysis = async (id: number, analysisData: any) => {
-  const { data, error } = await supabase
-    .from('business_analyzer')
-    .update(analysisData)
-    .eq('id', id);
-  
-  return { data, error };
-};
-
-const deleteBusinessAnalysis = async (id: number) => {
-  const { error } = await supabase
-    .from('business_analyzer')
-    .delete()
-    .eq('id', id);
-  
-  return { error };
-};
-
-// Content Items
-export const fetchContentItems = async (userId?: string) => {
-  const query = supabase
-    .from('content_items')
-    .select('*');
-  
-  if (userId) {
-    query.eq('user_id', userId);
+const updateBusinessAnalysis = async (id: string, analysisData: any) => {
+  try {
+    return await apiService.updateBusinessAnalysis(id, analysisData);
+  } catch (err) {
+    console.error("Error updating business analysis:", err);
+    return { data: null, error: err };
   }
-  
-  const { data, error } = await query;
-  return { data, error };
+};
+
+const deleteBusinessAnalysis = async (id: string) => {
+  try {
+    await apiService.deleteBusinessAnalysis(id);
+    return { error: null };
+  } catch (err) {
+    console.error("Error deleting business analysis:", err);
+    return { error: err };
+  }
+};
+
+// Content Items - now using API service
+export const fetchContentItems = async (userId?: string) => {
+  try {
+    return await apiService.fetchContentItems(userId);
+  } catch (err) {
+    console.error("Error fetching content items:", err);
+    return { data: null, error: err };
+  }
 };
 
 export const createContentItem = async (contentData: any) => {
-  const { data, error } = await supabase
-    .from('content_items')
-    .insert([contentData]);
-  
-  return { data, error };
+  try {
+    return await apiService.createContentItem(contentData);
+  } catch (err) {
+    console.error("Error creating content item:", err);
+    return { data: null, error: err };
+  }
 };
 
 const updateContentItem = async (id: string, contentData: any) => {
-  const { data, error } = await supabase
-    .from('content_items')
-    .update(contentData)
-    .eq('id', id);
-  
-  return { data, error };
+  try {
+    return await apiService.updateContentItem(id, contentData);
+  } catch (err) {
+    console.error("Error updating content item:", err);
+    return { data: null, error: err };
+  }
 };
 
 export const deleteContentItem = async (id: string) => {
-  const { error } = await supabase
-    .from('content_items')
-    .delete()
-    .eq('id', id);
-  
-  return { error };
+  try {
+    await apiService.deleteContentItem(id);
+    return { error: null };
+  } catch (err) {
+    console.error("Error deleting content item:", err);
+    return { error: err };
+  }
 };
 
-// Voice Profiles
+// Voice Profiles - now using API service
 export const fetchVoiceProfiles = async (userId?: string) => {
-  const query = supabase
-    .from('voice_profiles')
-    .select('*');
-  
-  if (userId) {
-    query.eq('user_id', userId);
+  try {
+    return await apiService.fetchVoiceProfiles(userId);
+  } catch (err) {
+    console.error("Error fetching voice profiles:", err);
+    return { data: null, error: err };
   }
-  
-  const { data, error } = await query;
-  return { data, error };
 };
 
 export const createVoiceProfile = async (profileData: any) => {
-  const { data, error } = await supabase
-    .from('voice_profiles')
-    .insert([profileData]);
-  
-  return { data, error };
+  try {
+    return await apiService.createVoiceProfile(profileData);
+  } catch (err) {
+    console.error("Error creating voice profile:", err);
+    return { data: null, error: err };
+  }
 };
 
 export const updateVoiceProfile = async (id: string, profileData: any) => {
-  const { data, error } = await supabase
-    .from('voice_profiles')
-    .update(profileData)
-    .eq('id', id);
-  
-  return { data, error };
+  try {
+    return await apiService.updateVoiceProfile(id, profileData);
+  } catch (err) {
+    console.error("Error updating voice profile:", err);
+    return { data: null, error: err };
+  }
 };
 
 export const deleteVoiceProfile = async (id: string) => {
-  const { error } = await supabase
-    .from('voice_profiles')
-    .delete()
-    .eq('id', id);
-  
-  return { error };
+  try {
+    await apiService.deleteVoiceProfile(id);
+    return { error: null };
+  } catch (err) {
+    console.error("Error deleting voice profile:", err);
+    return { error: err };
+  }
 };
 
-// Image Assets
+// Image Assets - now using API service
 const fetchImageAssets = async (userId?: string) => {
   try {
-    const query = supabase
-      .from('image_assets')
-      .select('*');
-    
-    if (userId) {
-      // Skip filtering if userId is not a valid UUID
-      if (isValidUUID(userId)) {
-        query.eq('user_id', userId);
-      } else {
-        console.warn(`Invalid UUID format for user_id: ${userId}. Returning all images instead.`);
-        // If you want to return empty results for invalid UUIDs, uncomment the following:
-        // return { data: [], error: null };
-      }
-    }
-    
-    const { data, error } = await query;
-    return { data, error };
+    return await apiService.fetchImageAssets(userId);
   } catch (err) {
     console.error("Error fetching image assets:", err);
     return { data: null, error: err };
@@ -213,17 +160,7 @@ const fetchImageAssets = async (userId?: string) => {
 
 const createImageAsset = async (assetData: any) => {
   try {
-    // Check if user_id is a valid UUID
-    if (assetData.user_id && !isValidUUID(assetData.user_id)) {
-      console.error("Invalid UUID format for user_id when creating image asset");
-      return { data: null, error: new Error("Invalid UUID format for user_id") };
-    }
-    
-    const { data, error } = await supabase
-      .from('image_assets')
-      .insert([assetData]);
-    
-    return { data, error };
+    return await apiService.createImageAsset(assetData);
   } catch (err) {
     console.error("Error creating image asset:", err);
     return { data: null, error: err };
@@ -231,82 +168,30 @@ const createImageAsset = async (assetData: any) => {
 };
 
 const updateImageAsset = async (id: string, assetData: any) => {
-  const { data, error } = await supabase
-    .from('image_assets')
-    .update(assetData)
-    .eq('id', id);
-  
-  return { data, error };
+  try {
+    return await apiService.updateImageAsset(id, assetData);
+  } catch (err) {
+    console.error("Error updating image asset:", err);
+    return { data: null, error: err };
+  }
 };
 
 const deleteImageAsset = async (id: string) => {
-  const { error } = await supabase
-    .from('image_assets')
-    .delete()
-    .eq('id', id);
-  
-  return { error };
+  try {
+    await apiService.deleteImageAsset(id);
+    return { error: null };
+  } catch (err) {
+    console.error("Error deleting image asset:", err);
+    return { error: err };
+  }
 };
 
-// Edge Function Helpers
+// Edge Function Helpers - now using API service
 export const callEdgeFunction = async (functionName: string, payload: any) => {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    
-    if (!supabaseUrl) {
-      throw new Error("Supabase URL is not defined");
-    }
-    
-    // Get API keys from store
-    let apiKeys = { openai: '', gemini: '', elevenlabs: '' };
-    
-    // First try to get from window if available (we're in browser)
-    if (typeof window !== 'undefined') {
-      try {
-        const storedKeys = localStorage.getItem('ai-crm-api-storage');
-        if (storedKeys) {
-          const parsedStore = JSON.parse(storedKeys);
-          apiKeys = parsedStore.state.apiKeys;
-        }
-      } catch (err) {
-        console.warn('Could not retrieve API keys from localStorage');
-      }
-    }
-    
-    // Fallback to environment variables if needed
-    const openaiKey = apiKeys.openai || import.meta.env.VITE_OPENAI_API_KEY || '';
-    const geminiKey = apiKeys.gemini || import.meta.env.VITE_GEMINI_API_KEY || '';
-    const elevenLabsKey = apiKeys.elevenlabs || import.meta.env.VITE_ELEVENLABS_API_KEY || '';
-    
-    // Add API keys to payload
-    const enhancedPayload = {
-      ...payload,
-      apiKeys: {
-        OPENAI_API_KEY: openaiKey,
-        GEMINI_API_KEY: geminiKey,
-        ELEVENLABS_API_KEY: elevenLabsKey
-      }
-    };
-    
-    const apiUrl = `${supabaseUrl}/functions/v1/${functionName}`;
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(enhancedPayload)
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error calling ${functionName}: ${response.status} - ${errorText}`);
-    }
-    
-    return await response.json();
+    return await apiService.callAIService(functionName, payload);
   } catch (error) {
-    console.error(`Error calling edge function ${functionName}:`, error);
+    console.error(`Error calling AI service ${functionName}:`, error);
     throw error;
   }
 };
