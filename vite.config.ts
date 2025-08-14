@@ -6,9 +6,4 @@ export default defineConfig({
   root: './client',
   plugins: [react()],
   optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
-  define: {
-    global: 'window',
-  },
 });
