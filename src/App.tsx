@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import Dashboard from '../../components/Dashboard';
-const VideoCallOverlay = React.lazy(() => import('../../components/VideoCallOverlay'));
-const VideoCallPreviewWidget = React.lazy(() => import('../../components/VideoCallPreviewWidget'));
-import DevicePermissionChecker from '../../components/DevicePermissionChecker';
-import { AIToolsProvider } from '../../components/AIToolsProvider';
-import { EnhancedHelpProvider } from '../../contexts/EnhancedHelpContext';
-import { ThemeProvider } from '../../contexts/ThemeContext';
-import { NavigationProvider } from '../../contexts/NavigationContext';
-import { DashboardLayoutProvider } from '../../contexts/DashboardLayoutContext';
-import { VideoCallProvider } from '../../contexts/VideoCallContext';
-import { ModalsProvider } from '../../components/ModalsProvider';
-import { ContactsModal } from '../../components/modals/ContactsModal';
-import '../../components/styles/design-system.css';
+import Navbar from '../components/Navbar';
+import Dashboard from '../components/Dashboard';
+const VideoCallOverlay = React.lazy(() => import('../components/VideoCallOverlay'));
+const VideoCallPreviewWidget = React.lazy(() => import('../components/VideoCallPreviewWidget'));
+import DevicePermissionChecker from '../components/DevicePermissionChecker';
+import { AIToolsProvider } from '../components/AIToolsProvider';
+import { EnhancedHelpProvider } from '../contexts/EnhancedHelpContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import { NavigationProvider } from '../contexts/NavigationContext';
+import { DashboardLayoutProvider } from '../contexts/DashboardLayoutContext';
+import { VideoCallProvider } from '../contexts/VideoCallContext';
+import { ModalsProvider } from '../components/ModalsProvider';
+import { ContactsModal } from '../components/modals/ContactsModal';
+import '../components/styles/design-system.css';
 
 function App() {
   // Prevent unnecessary re-renders with useState instead of using a boolean directly
