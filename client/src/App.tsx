@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import Navbar from '../components/Navbar';
 import Dashboard from './components/Dashboard';
 const VideoCallOverlay = React.lazy(() => import('./components/VideoCallOverlay'));
 const VideoCallPreviewWidget = React.lazy(() => import('./components/VideoCallPreviewWidget'));
