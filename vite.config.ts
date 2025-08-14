@@ -6,4 +6,5 @@ export default defineConfig({
   root: './client',
   plugins: [react()],
   optimizeDeps: {
+  }
 });
